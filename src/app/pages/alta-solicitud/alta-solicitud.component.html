@@ -1,0 +1,239 @@
+<form class="form-horizontal form-material" id="loginform" (ngSubmit)="altaOrCambio()" autocomplete="off"
+    [formGroup]="registerForm">
+    <div class="row m-auto"  style="max-width: 500px;">
+
+        <div style="min-width: 100% "> 
+            <p-card>
+                
+                <div class="input-group">
+                    <span *ngIf="verNum" class="p-float-label" style="min-width: 100%;">
+                        <input pInputText id="NoControlPres" formControlName="NoControlPres" style="min-width: 100%;">
+                        <label htmlFor="NoControlPres">No. de Control Presupuestal</label>
+                    </span>
+                </div>
+                
+                <div *ngIf="verNumC" style="display: flex; align-items: center;"> 
+                    <label class="label-lila" style="font-size: 18px;">No. de Control Presupuestal:</label>
+                    <div style="width: 22px"></div>  <!-- Espacio entre los dos labels -->
+                    <label class="label-cielo" style="font-size: 18px">{{NoControl}}</label>
+                    
+                </div>
+                          
+                 <div class="col-xs-12">
+                    <label *ngIf="cbodependencia">Dependencia</label>
+                    <select *ngIf="cbodependencia" class="form-control" formControlName="dependenciaId">
+                        <option *ngFor="let item of listaDependencias" [value]="item._id">{{item.dependencia}}</option>
+                    </select>
+                    <div *ngIf="cbodependenciaC" style="display: flex; align-items: center;">                    
+                        <label class="label-lila" style="font-size: 18px;">Dependencia:</label>
+                        <div style="width: 22px;"></div>  <!-- Espacio entre los dos labels -->
+                        <label class="label-cielo" style="font-size: 18px;"> {{NombreDependencia}} </label>
+                    </div>
+
+                  </div>
+                  <br>
+
+                <div>
+                    <div class="margin-bottom">
+                        <label *ngIf="requis">Solicitud de Requisición</label>
+                        <input *ngIf="requis" formControlName="pdfSolicitudRequicision" (change)="cambiarFile($event)" 
+                            type="file" class="form-control-file" id="exampleFormControlFile" accept="application/pdf">                    
+                    </div>                    
+                    <div *ngIf="requisC" class="margin-bottom" style="display: flex; align-items: center;">
+                        <label class="label-lila">Solicitud de Requisición
+                            <i class="fas fa-check"></i>
+                        </label>
+
+                        <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                (click)="mostrarArchivo()">
+                                <i class="fas fa-eye"></i>
+                        </button>
+                         <!--<iframe [src]="imgURL" width="50" height="50"></iframe> 
+                        <div class="u-img"><img [src]="imgURL" alt="Sin imagen"
+                            style="width: 50px; height: 50px;">
+                        </div>-->
+                    </div>
+
+                </div>   
+
+                <div>
+                    <label *ngIf='suficiencia'>Suficiencia Presupuestal</label>
+                    <input *ngIf='suficiencia' formControlName="pdfSuficienciaPresupuestal" (change)="cambiarFile1($event)" 
+                            type="file" class="form-control-file" id="exampleFormControlFile1" accept="application/pdf">
+      
+                    <div *ngIf="suficienciaC" class="margin-bottom" style="display: flex; align-items: center;">
+                            <label class="label-lila">Suficiencia Presupestal
+                                <i class="fas fa-check"></i>
+                            </label>
+                            <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                    (click)="mostrarArchivo()">
+                                    <i class="fas fa-eye"></i>
+                            </button>
+                            <!--<iframe [src]="imgURL1" width="50" height="50"></iframe> 
+                             <div class="u-img"><img [src]="imgURL1" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div>--> 
+    
+                    </div>
+                </div>
+
+                <div>
+                    <label *ngIf="cot1">Cotización 1</label>
+                    <input *ngIf="cot1" formControlName="pdfCotiza1" (change)="cambiarFile2($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile2" accept="application/pdf">
+                    <div *ngIf="cot1C" class="margin-bottom" style="display: flex; align-items: center;">
+                            <label class="label-lila">Cotización 1
+                                <i class="fas fa-check"></i>
+                            </label>
+                            <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                    (click)="mostrarArchivo()">
+                                    <i class="fas fa-eye"></i>
+                            </button>
+                            <!-- <div class="u-img"><img [src]="imgURL2" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+     
+                        </div>
+                </div>
+
+                <div>
+                    <label *ngIf="cot2">Cotización 2</label>
+                    <input *ngIf="cot2" formControlName="pdfCotiza2" (change)="cambiarFile3($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile3" accept="application/pdf">
+                    <div *ngIf="cot2C" class="margin-bottom" style="display: flex; align-items: center;">
+                            <label class="label-lila">Cotización 2
+                                <i class="fas fa-check"></i>
+                            </label>
+                            <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                    (click)="mostrarArchivo()">
+                                    <i class="fas fa-eye"></i>
+                            </button>                            
+                            <!-- <div class="u-img"><img [src]="imgURL3" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+
+                    </div>  
+                </div>
+
+                <div>
+                    <label *ngIf="cot3">Cotización 3</label>
+                    <input *ngIf="cot3" formControlName="pdfCotiza3" (change)="cambiarFile4($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile4" accept="application/pdf">
+                    <div *ngIf="cot3C" class="margin-bottom" style="display: flex; align-items: center;">
+                            <label class="label-lila">Cotización 3
+                                <i class="fas fa-check"></i>
+                            </label>
+                            <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                    (click)="mostrarArchivo()">
+                                    <i class="fas fa-eye"></i>
+                            </button>                            
+                            <!-- <div class="u-img"><img [src]="imgURL4" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+
+                    </div>  
+                </div>
+
+                <div>
+                    <label *ngIf="excelCot">Excel comparativo Cotizaciones de Proveedores</label>
+                    <input *ngIf="excelCot" formControlName="ExcelComparativo" (change)="cambiarFile5($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile5"
+                            accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            
+                    <div *ngIf="excelCotC" class="margin-bottom" style="display: flex; align-items: center;">
+                        <label class="label-lila">Excel comparativo Cotizaciones de Proveedores
+                            <i class="fas fa-check"></i>
+                        </label>
+                        <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                (click)="mostrarArchivo()">
+                                <i class="fas fa-eye"></i>
+                        </button>                            
+                        <!-- <div class="u-img"><img [src]="imgURL5" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+
+                    </div>  
+                </div>
+
+                <div>
+                    <label *ngIf="ordenCompra">Órden de compra de la cotización más conveniente</label>
+                    <input *ngIf="ordenCompra" formControlName="pdfOrdenCompra" (change)="cambiarFile6($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile6" accept="application/pdf">
+                            <div *ngIf="ordenCompraC" class="margin-bottom" style="display: flex; align-items: center;">
+                                <label class="label-lila">Órden de compra de la cotización más conveniente
+                                    <i class="fas fa-check"></i>
+                                </label>
+                                <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                        (click)="mostrarArchivo()">
+                                        <i class="fas fa-eye"></i>
+                                </button>                            
+                                <!-- <div class="u-img"><img [src]="imgURL6" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+
+                            </div>
+                        </div>
+
+                <div>
+                    <label *ngIf="contratoPDF">Contrato PDF</label>
+                    <input *ngIf="contratoPDF" formControlName="pdfContrato" (change)="cambiarFile7($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile7" accept="application/pdf">
+                            <div *ngIf="contratoPDFC" class="margin-bottom" style="display: flex; align-items: center;">
+                                <label class="label-lila">Contrato PDF
+                                    <i class="fas fa-check"></i>
+                                </label>
+                                <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                        (click)="mostrarArchivo()">
+                                        <i class="fas fa-eye"></i>
+                                </button>                            
+                                <!-- <div class="u-img"><img [src]="imgURL7" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                            </div> -->
+
+                            </div>
+                        </div>
+
+                <div>
+                    <label *ngIf="contratoExcel">Contrato en Excel</label>
+                    <input *ngIf="contratoExcel" formControlName="ExcelContrato" (change)="cambiarFile8($event)"
+                            type="file" class="form-control-file" id="exampleFormControlFile8"
+                            accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            <div *ngIf="contratoExcelC" class="margin-bottom" style="display: flex; align-items: center;">
+                                <label class="label-lila">Contrato en Excel
+                                    <i class="fas fa-check"></i>
+                                </label>
+                                <button type="button" class="btn btn-sm boton-cielo" style="margin-left: 10px;"
+                                        (click)="mostrarArchivo()">
+                                        <i class="fas fa-eye"></i>
+                                </button>                            
+                                <!-- <div class="u-img"><img [src]="imgURL8" alt="Sin imagen"
+                                style="width: 50px; height: 50px;">
+                                </div> -->
+
+                            </div>
+                </div>
+              
+                <div *ngIf="todoLleno" style="display: flex; justify-content: center; align-items: center;">    
+                    <label class="label-verde">Ya se han cargado todos los archivos
+                      <i class="fas fa-check"></i>
+                    </label>
+                  </div>                  
+            </p-card>
+        </div>
+
+    </div>
+
+    <div class="row m-auto" style="max-width: 500px;">
+        <div class="col text-danger">
+            <p *ngIf="campoNoValido('NoControlPres')">* El Número de Control Presupuestal es obligatorio</p>
+            <p *ngIf="campoNoValido('dependenciaId')">* La dependencia es obligatoria</p>
+        </div>    
+    </div>
+
+    <div class="row m-auto m-b-3" style="max-width: 500px;">
+        <div class="col-12">
+            <button class="btn btn-info btn-lg btn-block text-uppercase waves-effect waves-light"
+                type="submit"> Continuar </button>
+        </div>
+    </div>
+</form>

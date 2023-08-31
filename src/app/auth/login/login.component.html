@@ -1,0 +1,115 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="../../../assets/images/logoHojaDer.png" width="50" alt="">
+        </a>
+        <a class="navbar-brand" href="https://Teoloyucan.gob.mx/">Teoloyucan</a>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Control Presupuestal<span class="sr-only bigger">(current)</span></a>
+                </li>
+
+            </ul>
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <button class="btn btn-info btn-small" data-toggle="modal" data-target="#ModalIniciarSesion">Iniciar
+                        Sesión</button>
+                </li>
+
+            </ul>
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+    </div>
+</nav>
+
+<!-- ============================================================== -->
+<!-- Main wrapper - style you can find in pages.scss -->
+<!-- ============================================================== -->
+<section id="wrapper" class="login-register login-sidebar"
+    style="background-image:url(../../../assets/images/background/teoloBack.jpg);">
+
+    <div class="login-box card">
+        <div class="card-body">
+            <form class="form-horizontal form-material" autocomplete="off">
+                <a href="javascript:void(0)" class="text-center db"><img src="../../../assets/images/logo.png"
+                        width="300px" alt="Home" class="NauLogo" /></a>
+                <div class="text-center">
+                    <h2>COPRE</h2>
+                </div>
+
+                <div class="form-group m-t-40">
+                    <div class="col-xs-12">
+                        <input class="form-control" type="text" placeholder="Número de Oficio" id="oficio">
+                    </div>
+                </div>
+
+                
+            </form>
+
+
+        </div>
+    </div>
+</section>
+<!-- ============================================================== -->
+<!-- End Wrapper -->
+<!-- ============================================================== -->
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="ModalIniciarSesion" tabindex="-1" role="dialog" aria-labelledby="ModalIniciarSesionTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Iniciar Sesión</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <small>Toda persona ajena al H. Ayuntamiento de Teoloyucan que intenté iniciar sesión sin los permisos
+                    requeridos será consignado ante las autoridades correspondientes.</small>
+                <form class="form-horizontal form-material" id="loginform" (ngSubmit)="login()" autocomplete="off"
+                    [formGroup]="loginForm">
+                    <a href="javascript:void(0)" class="text-center db"><img src="../../../assets/images/logo.png"
+                            alt="Home" width="250px" class="NauLogo" /></a>
+                    <div class="form-group m-t-40">
+                        <div class="col-xs-12">
+                            <input class="form-control" type="email" placeholder="Usuario" formControlName="email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-12">
+                            <input class="form-control" type="password" placeholder="Contraseña"
+                                formControlName="password">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-12">
+                            <div class="checkbox checkbox-primary pull-left p-t-0">
+                                <input id="checkbox-signup" type="checkbox" class="filled-in chk-col-light-blue"
+                                    formControlName="remember">
+                                <label for="checkbox-signup"> Recuérdame </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group text-center m-t-20">
+                        <div class="col-xs-12">
+                            <button class="btn btn-info btn-lg btn-block text-uppercase btn-rounded"
+                                type="submit">Iniciar Sesión</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import * as XLSX from 'xlsx';
 
 import { DependenciasService } from 'src/app/services/dependencias.service';
 import { RequisicionesService } from 'src/app/services/requisiciones.service';
@@ -18,19 +21,17 @@ const base_url = environment.base_url;
 })
 export class AltaSolicitudComponent implements OnInit {
 
-  public imgURL = ''
-  public imgURL1 = ''
-  public imgURL2 = ''
-  public imgURL3 = ''
-  public imgURL4 = ''
-  public imgURL5 = ''
-  public imgURL6 = ''
-  public imgURL7 = ''
-  public imgURL8 = ''
+  @ViewChild('archivoModal')
+  archivoModal!: TemplateRef<any>;
+  currentURL!: SafeResourceUrl
+
+  private dialogRef!: MatDialogRef<AltaSolicitudComponent>
 
   constructor(private fb: FormBuilder,
     private dependenciasService: DependenciasService,
-    private requisicionesService: RequisicionesService,)
+    private requisicionesService: RequisicionesService,
+    private sanitizer: DomSanitizer,
+    public dialog: MatDialog)
     {}
 
   ngOnInit(): void {
@@ -40,6 +41,16 @@ export class AltaSolicitudComponent implements OnInit {
       this.loadRequisiciones();
     });
   }
+
+  public imgURL!: SafeResourceUrl;
+  public imgURL1!: SafeResourceUrl;
+  public imgURL2!: SafeResourceUrl;
+  public imgURL3!: SafeResourceUrl;
+  public imgURL4!: SafeResourceUrl;
+  public imgURL5!: SafeResourceUrl;
+  public imgURL6!: SafeResourceUrl;
+  public imgURL7!: SafeResourceUrl;
+  public imgURL8!: SafeResourceUrl;
 
   public verNum = true;
   public cbodependencia = false;
@@ -82,6 +93,7 @@ export class AltaSolicitudComponent implements OnInit {
   public esCambio = false;
   public ContarSubmit = 0;
   public todoLleno=false;
+  public seCargoArhivo=false;
 
   uid!: string;
 
@@ -111,8 +123,6 @@ export class AltaSolicitudComponent implements OnInit {
     ExcelContrato: ['']
   });
 
-
-
   loadRequisiciones(): void {
     this.requisicionesService.obtenerRequisiciones().subscribe(data => {
       this.requisiciones = data;
@@ -124,23 +134,26 @@ export class AltaSolicitudComponent implements OnInit {
     this.NoControl = ""
     this.todoLleno=false
     this.ContarSubmit=0
+    this.seCargoArhivo=false
   }
 
   altaOrCambio() {
+    
     this.ContarSubmit++
-    console.log('hubo cambios en formato',!this.registerForm.pristine)
-    console.log('cuantos submit',this.ContarSubmit)
+    this.consolaSubmit('vamos entrando al submit')
 
     if (this.registerForm.pristine){
       this.restablecerForm()
       this.apagaTodo();
       this.limpiaVariables();
+      this.consolaSubmit('sale por pristine')
       return
     }
-    if (this.todoLleno){
+    if (this.todoLleno || (this.esCambio && !this.seCargoArhivo)){
       this.restablecerForm();
       this.apagaTodo();
       this.limpiaVariables();
+      this.consolaSubmit('sale por todo Lleno o es cambio y no cargo archivo')
       return
     }
     const { NoControlPres } = this.registerForm.value
@@ -148,26 +161,37 @@ export class AltaSolicitudComponent implements OnInit {
       Swal.fire('Algo falta', 'No se ha capturado el Numero de Control Presupuestal', 'error');
       this.ContarSubmit--
       if(this.ContarSubmit<0){this.ContarSubmit=0}
+      this.consolaSubmit('sale por falta del no. de control')
       return;
     }
 
     if (this.ContarSubmit === 1) {
       this.apagaTodo()
       this.buscaSolicitud(NoControlPres);
+      this.consolaSubmit('sale despues de buscar el registro')
       return
     }
 
     if (this.ContarSubmit > 1 && this.esCambio) {
       this.cambiarRequisicion();
-
+      this.consolaSubmit('sale despues de hacer cambio')
       return
     }
 
     if (!this.esCambio) {
       this.altaSolicitud();
+      this.consolaSubmit('sale despues de hacer alta')
       return
     }
 
+  }
+  consolaSubmit(entra:string){
+    console.log(entra,' y los datos son:'  )
+    console.log('hubo cambios, pristine',!this.registerForm.pristine)
+    console.log('cuantos submit',this.ContarSubmit)
+    console.log('se cargo archivo',this.seCargoArhivo)
+    console.log('es cambio',this.esCambio)
+    console.log('todo lleno',this.todoLleno)
   }
   apagaTodo() {
     this.verNum = true;
@@ -230,7 +254,7 @@ export class AltaSolicitudComponent implements OnInit {
 
       this.registerForm.patchValue(solicitudEncontrada);
       this.esCambio = true;
-      console.log('los datos del registro encontrado son:', this.registerForm.value)
+      console.log('los datos del registro encontrado son:', solicitudEncontrada)
       console.log('los datos del registro en la forma son', this.registerForm.value)
 
       this.prenderApagar();
@@ -241,7 +265,7 @@ export class AltaSolicitudComponent implements OnInit {
 
 
     } else {  // solicitud no encontrada, preguntar si hacer alta
-      await this.abrirAlerta('Alta', '¿Deseas agregar este número de control presupuestal?')
+      await this.abrirAlerta('Alta', '¿Deseas agregar este número de control presupuestal?',true)
       if (this.respAlerta) {
         this.esCambio = false;
         this.formSubmitted = true;
@@ -258,8 +282,14 @@ export class AltaSolicitudComponent implements OnInit {
     }
   }
 
-  mostrarArchivo(){
-    console.log('Aqui se mostrara el archivo');
+  mostrarArchivo(url:SafeResourceUrl) {
+    this.currentURL = url;
+    if (this.archivoModal) {
+        this.dialogRef = this.dialog.open(this.archivoModal);
+    }
+  }
+  cerrar() {
+    this.dialogRef.close();
   }
 
   prenderApagar() {
@@ -271,42 +301,42 @@ export class AltaSolicitudComponent implements OnInit {
     if (this.requisi === undefined) { this.requis = true } 
     else { 
       this.requisC = true 
-      this.imgURL=`${ base_url }/descargas/requisiciones/${ this.requisi }`
+      this.imgURL = this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/requisiciones/${ this.requisi }`);
     }
     if (this.suficie === undefined) { this.suficiencia = true }
     else { 
       this.suficienciaC = true
-      this.imgURL1= `${ base_url }/descargas/suficiencias/${ this.suficie }`
+      this.imgURL1= this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/suficiencias/${ this.suficie }`)
     }
 
     if (this.requisi !== undefined && this.suficie !== undefined){
       if(this.cotiza1 === undefined){ this.cot1=true}
         else {
           this.cot1C=true;
-          this.imgURL2= `${ base_url }/descargas/cotizaciones1/${ this.cotiza1 }`
+          this.imgURL2= this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/cotizaciones1/${ this.cotiza1 }`)
           if(this.cotiza2 === undefined){this.cot2=true}
             else {
               this.cot2C=true
-              this.imgURL3= `${ base_url }/descargas/cotizaciones2/${ this.cotiza2 }`
+              this.imgURL3= this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/cotizaciones2/${ this.cotiza2 }`)
               if(this.cotiza3 === undefined){this.cot3=true}
                 else {
                   this.cot3C=true
-                  this.imgURL4= `${ base_url }/descargas/cotizaciones3/${ this.cotiza3 }`
+                  this.imgURL4= this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/cotizaciones3/${ this.cotiza3 }`)
                   if(this.excelCotiza === undefined){this.excelCot=true}
                     else {
-                      this.imgURL5=`${ base_url }/descargas/excelComparativos/${ this.excelCotiza }`
                       this.excelCotC=true
+                      this.imgURL5=this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/excelComparativos/${ this.excelCotiza }`)
                       if(this.compra === undefined){this.ordenCompra=true}
                         else {
-                          this.imgURL6=`${ base_url }/descargas/ordenesCompra/${ this.compra }`
+                          this.imgURL6=this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/ordenesCompra/${ this.compra }`)
                           this.ordenCompraC=true
                           if(this.contratPDF === undefined){this.contratoPDF=true}
                             else {
-                              this.imgURL7=`${ base_url }/descargas/pdfContratos/${ this.contratPDF }`
+                              this.imgURL7=this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/pdfContratos/${ this.contratPDF }`)
                               this.contratoPDFC=true
                               if(this.contratExcel === undefined){this.contratoExcel=true}
                                 else {
-                                  this.imgURL8=`${ base_url }/descargas/excelContratos/${ this.contratExcel }`
+                                  this.imgURL8=this.sanitizer.bypassSecurityTrustResourceUrl(`${ base_url }/descargas/excelContratos/${ this.contratExcel }`)
                                   this.contratoExcelC=true
                                   this.todoLleno=true
                                 }
@@ -368,7 +398,7 @@ export class AltaSolicitudComponent implements OnInit {
         Swal.fire('Guardado', 'La requisición se actualizó correctamente', 'success');
         this.restablecerForm();
         this.apagaTodo();
-        this.limpiaVariables();
+
       }, error => {
         console.error('Hubo un error al actualizar la requisición:', error);
       });
@@ -382,11 +412,11 @@ export class AltaSolicitudComponent implements OnInit {
     this.formSubmitted = false;
     this.esCambio = false;
     this.ContarSubmit = 0;
+    this.seCargoArhivo=false
     this.loadRequisiciones();
   }
 
   grabarArchivos(idReq: string) {
-
     if (this.SubirFile !== undefined) {
       this.subirArchivo(idReq, 'requisiciones', this.SubirFile);
     }
@@ -422,12 +452,13 @@ export class AltaSolicitudComponent implements OnInit {
     if (this.SubirFile8 !== undefined) {
       this.subirArchivo(idReq, 'excelContratos', this.SubirFile8);
     }
-
+    this.loadRequisiciones();
   }
 
   cambiarFile(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -448,6 +479,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile1(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile1 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -468,6 +500,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile2(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile2 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -488,6 +521,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile3(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile3 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -508,6 +542,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile4(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile4 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -526,8 +561,24 @@ export class AltaSolicitudComponent implements OnInit {
   }
 
   cambiarFile5(file: any) {
+    const input = file.target as HTMLInputElement;
 
+    if (!input.files?.length) {
+      return;
+    }
+  
+    const arch = input.files[0];
+    const fileName = arch.name;
+  
+    if (!(fileName.endsWith('.xlsx') || fileName.endsWith('.xls'))) {
+      this.abrirAlerta('Solo Excel', 'El archivo NO es una hoja de cálculo',false)    
+      input.value = '';// Vaciando el input de archivo
+      this.seCargoArhivo=false
+      return
+    }
+    
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile5 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -548,6 +599,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile6(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile6 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -568,6 +620,7 @@ export class AltaSolicitudComponent implements OnInit {
   cambiarFile7(file: any) {
 
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile7 = file.target.files[0];
       console.log(file.target.files[0])
       const reader = new FileReader();
@@ -581,30 +634,49 @@ export class AltaSolicitudComponent implements OnInit {
       }
       reader.onerror = function () {
         console.log(reader.error);
-      };
+      }
     }
   }
 
   cambiarFile8(file: any) {
+    const input = file.target as HTMLInputElement;
 
+    if (!input.files?.length) {
+      return;
+    }
+  
+    const arch = input.files[0];
+    const fileName = arch.name;
+  
+    if (!(fileName.endsWith('.xlsx') || fileName.endsWith('.xls'))) {
+      this.abrirAlerta('Solo Excel', 'El archivo NO es una hoja de cálculo',false)    
+      input.value = '';// Vaciando el input de archivo
+      this.seCargoArhivo=false
+      return
+    }
+    
+    const target: DataTransfer = <DataTransfer>(file.target);
     if (file !== null) {
+      this.seCargoArhivo=true
       this.SubirFile8 = file.target.files[0];
-      console.log(file.target.files[0])
-      const reader = new FileReader();
-      reader.readAsDataURL(file.target.files[0]);
-      reader.onload = function () {
-        $('#addAvancesBtn').prop("disabled", true)
-      }
-      reader.onloadend = function () {
-        alert("Archivo cargado! ya puede enviar")
-        $('#addAvancesBtn').prop("disabled", false)
-      }
-      reader.onerror = function () {
-        console.log(reader.error);
+      if (target.files.length !== 1) throw new Error('No se puede usar múltiples archivos');
+
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const data: string = e.target.result;
+        const workbook: XLSX.WorkBook = XLSX.read(data, {type: 'binary'});
+    
+        const worksheet: XLSX.WorkSheet = workbook.Sheets[workbook.SheetNames[0]];
+    
+        const cellA1 = worksheet['A1'] ? worksheet['A1'].v : 'N/A';
+        const cellB1 = worksheet['B1'] ? worksheet['B1'].v : 'N/A';
+    
+        console.log(`A1 cell: ${cellA1}`);
+        console.log(`B1 cell: ${cellB1}`);
       };
+      reader.readAsBinaryString(target.files[0]);
     }
   }
-
 
   subirArchivo(idRequisicion: string, tipoDocumento: any, nombreArch: any) {
 
@@ -621,13 +693,13 @@ export class AltaSolicitudComponent implements OnInit {
     }
   }
 
-  async abrirAlerta(tituloAlert: string, preguntaAlert: string) {
+  async abrirAlerta(tituloAlert: string, preguntaAlert: string,botonCancel:boolean) {
     const result = await Swal.fire<string>({
       title: tituloAlert,
       text: preguntaAlert,
       //input: 'text',
       //inputPlaceholder: holderAlert,
-      showCancelButton: true
+      showCancelButton: botonCancel
     });
 
     if (result.isDismissed) {
